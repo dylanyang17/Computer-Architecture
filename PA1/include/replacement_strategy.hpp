@@ -4,12 +4,16 @@
 #include <bitset.hpp>
 #include <utils.hpp>
 
+enum class StrategyType: int {
+  LRU = 0, RAMDOM = 1, BINARY_TREE = 2
+};
+
 class ReplacementStrategy {
  public:
   virtual void replace() = 0;
 };
 
-class LRUStrategy: ReplacementStrategy {
+class LRUStrategy: public ReplacementStrategy {
  public:
   LRUStrategy() = delete;
 

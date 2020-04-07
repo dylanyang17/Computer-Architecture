@@ -2,6 +2,7 @@
 #define CACHE_HPP
 
 #include <bitset.hpp>
+#include <replacement_strategy.hpp>
 
 class Cache {
   // 用于模拟硬件 Cache，总大小为 128KB
@@ -15,15 +16,37 @@ class Cache {
   Cache() = delete;
 
   // 注意传入的 ways 为 -1 表示全相联，需要计算实际 ways
-  Cache(int blockSize, int ways) {
+  Cache(int blockSize, int ways, StrategyType strategyType, bool isWriteThrough, bool isWriteAllocate) {
+    this->isWriteBack = isWriteBack;
+    this->isWriteThrough = isWriteThrough;
     this->blockSize = blockSize;
     this->blockNum = TOTAL_SIZE / blockSize;
     if (ways == -1) {
       ways = blockNum;
     }
-    this->groupNum = this->blockNum / ways;
+    this->groupNum = blockNum / ways;
     this->ways = ways;
-    this->items.resize(this->blockNum * ITEM_SIZE * 8);
+    this->items.resize(blockNum * ITEM_SIZE * 8);
+
+    // 设置每个组的 strategy
+    this->strategy = new ReplacementStrategy*[groupNum];
+    for (int i = 0; i < groupNum; ++i) {
+      switch (strategyType)
+      {
+      case StrategyType::LRU:
+        strategy[i] = new LRUStrategy(ways);
+        break;
+      case StrategyType::RAMDOM:
+        // TODO
+        break;
+      case StrategyType::BINARY_TREE:
+        // TODO
+        break;
+      default:
+        assert(0);
+        break;
+      }
+    }
   }
 
  private:
@@ -32,6 +55,8 @@ class Cache {
   int ways;       // 1, 4, 8 or <number of blocks>
   int groupNum;   // number of groups, which is euqal to blockNum/ways
   Bitset items;
+  ReplacementStrategy **strategy;
+  bool isWriteThrough, isWriteBack;
 };
 
 #endif
