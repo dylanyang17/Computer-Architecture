@@ -71,7 +71,12 @@ int main(int argc, char *argv[]) {
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
-    
+    int cnt = 0;
+    for (int i = 0; i < trace->size(); ++i) {
+      bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
+      cnt += suc;
+    }
+    printf("Rate: %.6f\n", 1 - (double)cnt / trace->size());
   }
   delete trace;
   return 0;

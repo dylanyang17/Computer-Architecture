@@ -22,7 +22,13 @@ struct TraceItem {
 class Trace {
  public:
   static char readChar(FILE*);
+  
   void readItems(FILE*);
+  
+  int size() {
+    return static_cast<int>(items.size());
+  }
+  
   TraceItem& operator[] (int ind) {
     assert(ind < static_cast<int>(items.size()));
     return items[ind];

@@ -55,23 +55,24 @@ class LRUStrategy: public ReplacementStrategy {
 
   int placeIn(int val) override {
     // 访问了组中下标为 val 的项，-1 表示访问的项不在组中（即组满且发生替换的情况）
-    // 三种情况——未满、满并且未发生替换、满并且发生替换
+    // 三种大情况——未满且缺失、满且缺失、满/未满且命中
     // 发生替换时返回换出者下标，否则返回 -1
     int ret = -1;
     if (val == -1) {
-      // 满且发生替换
+      // 满且缺失
       assert(len == ways);
       ret = makeTop(len - 1);
-    } else if (len < ways) {
-      // 未满
-      set(len++, val);
-      ret = -1;
     } else {
-      // 满且未发生替换，将堆栈中第 i 项置顶
       int i = find(val);
-      assert(i != -1);
-      makeTop(i);
-      ret = -1;
+      if (i != -1) {
+        // 满/未满且命中
+        makeTop(i);
+        ret = -1;
+      } else if (len < ways) {
+        // 未满且缺失
+        set(len++, val);
+        ret = -1;
+      }
     }
     return ret;
   }
