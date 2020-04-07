@@ -9,7 +9,11 @@ int main(int argc, char *argv[]) {
   char *filename = argv[1];
   Trace *trace = new Trace();
   FILE *file = fopen(filename, "r");
-  trace->readItems(file);
+  if (file == NULL) {
+    printf("Error: File \"%s\" does not exist.\n", filename);
+  } else {
+    trace->readItems(file);
+  }
   delete trace;
   return 0;
 }
