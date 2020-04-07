@@ -17,9 +17,9 @@ class Cache {
   Cache() = delete;
 
   // 注意传入的 ways 为 -1 表示全相联，需要计算实际 ways
-  Cache(int blockSize, int ways, StrategyType strategyType, bool isWriteThrough, bool isWriteAllocate) {
+  Cache(int blockSize, int ways, StrategyType strategyType, bool isWriteAllocate, bool isWriteBack) {
+    this->isWriteAllocate = isWriteAllocate;
     this->isWriteBack = isWriteBack;
-    this->isWriteThrough = isWriteThrough;
     this->blockSize = blockSize;
     this->blockNum = TOTAL_SIZE / blockSize;
     if (ways == -1) {
@@ -57,7 +57,7 @@ class Cache {
   int groupNum;   // number of groups, which is euqal to blockNum/ways
   Bitset items;
   ReplacementStrategy **strategy;
-  bool isWriteThrough, isWriteBack;
+  bool isWriteAllocate, isWriteBack;
 };
 
 #endif
