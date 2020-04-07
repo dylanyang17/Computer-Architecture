@@ -7,7 +7,7 @@ class Cache {
   // 用于模拟硬件 Cache，总大小为 128KB
   // 注意到块大小可能为 8B, 32B, 64B，
   // 故元数据(Tag加上Valid和Dirty位)最多占用 56 位，最少占用 53 位，
-  // 故使用 7 个 char 不多不少
+  // 故每项将使用 7 个 char
  public:
   static const int TOTAL_SIZE = 128 * 1024;
   static const int ITEM_SIZE = 7;
@@ -22,18 +22,14 @@ class Cache {
       ways = blockNum;
     }
     this->ways = ways;
-    items = new Bitset<ITEM_SIZE>[this->blockNum];
-  }
-
-  ~Cache() {
-    delete[] items;
+    this->items.resize(this->blockNum * ITEM_SIZE * 8);
   }
 
  private:
   int blockSize;  // 8, 32 or 64
   int blockNum;   // number of blocks
   int ways;       // 1, 4, 8 or <number of blocks>
-  Bitset<ITEM_SIZE> *items;
+  Bitset items;
 };
 
 #endif

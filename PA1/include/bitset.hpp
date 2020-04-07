@@ -3,19 +3,28 @@
 
 #include <cassert>
 
-template<int bnum>
 class Bitset {
-  // bnum 为位数
  public:
-  static const int ITEM_BITS = 8;  // 一个 char 的位数
-
-  bitset() {
-    int cnum = (bnum + 7) / 8;
-    data = new char[cnum];
+  Bitset() {
+    bnum = 0;
+    data = nullptr;
   }
 
-  ~bitset() {
-    delete[] data;
+  Bitset(int bnum) {
+    resize(bnum);
+  }
+
+  ~Bitset() {
+    if (data != nullptr)
+      delete[] data;
+  }
+
+  void resize(int bnum) {
+    if (data != nullptr) {
+      delete[] data;
+    }
+    this->data = new char[(bnum + 7) / 8];
+    this->bnum = bnum;
   }
 
   int get(int ind) {
@@ -38,26 +47,25 @@ class Bitset {
     data[ind >> 3] ^= (1 << (ind & 0x7));
   }
 
-  void assignLow(int len, int val) {
-    // 设置低 len 位，即第 [0, len) 位，变为值 val
-    assert(len > 0 && len <= bnum && val < (1<<len));
-    int ind = 0;
-    while (len > 0) {
-      if (len >= 8) {
-        data[ind] = val & ((1 << 8) - 1);
-        ind++;
-        val >>= 8;
-        len -= 8;
+  void assignSeg(int beg, int end, int val) {
+    // 设置第 [beg, end) 位，变为值 val
+    assert(beg >= 0 && beg < bnum);
+    assert(end > 0 && end <= bnum);
+    int tnum = end - beg;
+    assert(val >= 0 && val < (1 << tnum));
+    for (int i = beg; i < end; ++i) {
+      if (val & 1) {
+        set(i);
       } else {
-        data[ind] &= (~((1 << len) - 1));
-        data[ind] |= val;
-        len = 0;
+        unset(i);
       }
+      val >>= 1;
     }
   }
 
  private:
   char *data;
+  int bnum;
 };
 
 #endif
