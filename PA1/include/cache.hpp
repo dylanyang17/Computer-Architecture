@@ -6,6 +6,90 @@
 #include <bitset.hpp>
 #include <replacement_strategy.hpp>
 
+class CacheGroup {
+  // 一个组，大小为组相联数，即有 ways 项
+  // 对于每一项，使用 Bitset 存储，共 tagBits + 2 位
+  // 每项存储形式为 valid + dirty + tag，此处加号表示连接，左边为高位
+ public:
+  void init(int ways, int tagBits, StrategyType strategyType) {
+    this->ways = ways;
+    this->tagBits = tagBits;
+    items = new Bitset[ways];
+    for (int i = 0; i < ways; ++i) {
+      items[i].resize(tagBits + 2);
+    }
+    switch (strategyType)
+    {
+    case StrategyType::LRU:
+      strategy = new LRUStrategy(ways);
+      break;
+    case StrategyType::RAMDOM:
+      // TODO
+      break;
+    case StrategyType::BINARY_TREE:
+      // TODO
+      break;
+    default:
+      assert(0);
+      break;
+    }
+  }
+
+  unsigned long long getTag(int i) {
+    // 获得第 i 项的 tag
+    return items[i].getSeg(0, tagBits);
+  }
+
+  void setTag(int i, unsigned long long tag) {
+    // 设置第 i 项的 tag
+    items[i].assignSeg(0, tagBits, tag);
+  }
+
+  bool getDirty(int i) {
+    // 获取第 i 项是否 dirty
+    return items[i].get(tagBits);
+  }
+
+  void setDirty(int i, bool dirty) {
+    // 设置第 i 项是否 dirty
+    items[i].set(tagBits, dirty);
+  }
+
+  bool getValid(int i) {
+    // 获取第 i 项是否 valid
+    return items[i].get(tagBits + 1);
+  }
+
+  void setValid(int i, bool valid) {
+    // 设置第 i 项是否 valid
+    items[i].set(tagBits + 1, valid);
+  }
+
+  bool visit(unsigned long long tag, TraceType type) {
+    // 在这个组中访问 tag
+    switch (type)
+    {
+    case TraceType::DEFAULT:
+    case TraceType::READ:
+    case TraceType::LOAD:
+      
+      break;
+    case TraceType::WRITE:
+    case TraceType::STORE:
+      // TODO
+      break;
+    default:
+      assert(0);
+      break;
+    }
+  }
+
+ private:
+  int ways, tagBits;
+  ReplacementStrategy *strategy;
+  Bitset *items;
+};
+
 class Cache {
   // 用于模拟硬件 Cache，总大小为 128KB
  public:
@@ -26,32 +110,11 @@ class Cache {
     this->groupNum = blockNum / ways;
     this->ways = ways;
     this->blockBits = utils::lg2(blockSize);
-    this->indexBits = utils::lg2(TOTAL_SIZE / blockSize / ways);
+    this->indexBits = utils::lg2(groupNum);
     this->tagBits = ADDR_BITS - blockBits - indexBits;
-    this->items = new Bitset[blockNum];
-    for (int i = 0; i < blockNum; ++i) {
-      this->items[i].resize(tagBits + 2);
-    }
-
-    // 设置每个组的 strategy
-    this->strategy = new ReplacementStrategy*[groupNum];
-    for (int i = 0; i < groupNum; ++i) {
-      switch (strategyType)
-      {
-      case StrategyType::LRU:
-        strategy[i] = new LRUStrategy(ways);
-        break;
-      case StrategyType::RAMDOM:
-        // TODO
-        break;
-      case StrategyType::BINARY_TREE:
-        // TODO
-        break;
-      default:
-        assert(0);
-        break;
-      }
-    }
+    this->groups = new CacheGroup[groupNum];
+    for (int i = 0; i < groupNum; ++i)
+      this->groups[i].init(ways, tagBits, strategyType);
   }
 
   void analyze(unsigned long long addr, unsigned long long &tag, int &index) {
@@ -64,6 +127,7 @@ class Cache {
     unsigned long long tag;
     int index;
     analyze(addr, tag, index);
+    return groups[index].visit(tag, type);
   }
 
  private:
@@ -72,9 +136,8 @@ class Cache {
   int ways;       // 1, 4, 8 or <number of blocks>
   int groupNum;   // number of groups, which is euqal to blockNum/ways
   int blockBits, indexBits, tagBits;  // bits of block, index and tag, which's sum is 64
-  Bitset *items;
-  ReplacementStrategy **strategy;
   bool isWriteAllocate, isWriteBack;
+  CacheGroup *groups;
 };
 
 #endif
