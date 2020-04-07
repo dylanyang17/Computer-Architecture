@@ -2,6 +2,7 @@
 #define BITSET_HPP
 
 #include <cassert>
+#include <cstring>
 
 class Bitset {
  public:
@@ -25,6 +26,7 @@ class Bitset {
     }
     this->data = new char[(bnum + 7) / 8];
     this->bnum = bnum;
+    memset(data, 0, sizeof(char) * ((bnum + 7) / 8));
   }
 
   int get(int ind) {
