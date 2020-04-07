@@ -76,29 +76,46 @@ class CacheGroup {
     return -1;
   }
 
+  int findEmpty() {
+    // 寻找组内是否有 invalid 的位置，找到则返回相应下标，否则返回 -1
+    for (int i = 0; i < ways; ++i) {
+      if (!getValid(i))
+        return i;
+    }
+    return -1;
+  }
+
   bool visit(unsigned long long tag, TraceType type) {
     // 在这个组中访问 tag
     bool ret = false;
-    int i = find(tag);
+    int i = find(tag), ei = -1;
     if (i != -1) ret = true;
-
-    switch (type)
-    {
-    case TraceType::DEFAULT:
-    case TraceType::READ:
-    case TraceType::LOAD:
-      if (i == -1) {
-
+    else ei = findEmpty();
+    
+    if (i == -1) {
+      // Miss
+      if ((type == TraceType::DEFAULT || type == TraceType::LOAD || type == TraceType::READ) ||
+          ((type == TraceType::STORE || type == TraceType::WRITE) && isWriteAllocate)) {
+        // 需要进行分配
+        if (ei != -1) {
+          // 有空位
+          strategy->placeIn(ei);
+        } else {
+          // 没有空位，利用替换策略找到替换出去的下标
+          ei = strategy->placeIn(-1);
+        }
+        setValid(ei, true);
+        setDirty(ei, false);
+        setTag(ei, tag);
       }
-      break;
-    case TraceType::WRITE:
-    case TraceType::STORE:
-      // TODO
-      if (i == -1 && )
-      break;
-    default:
-      assert(0);
-      break;
+      ret = false;
+    } else {
+      // Hit
+      strategy->placeIn(i);
+      if ((type == TraceType::STORE || type == TraceType::WRITE) && isWriteBack) {
+        setDirty(i, true);
+      }
+      ret = true;
     }
     return ret;
   }
