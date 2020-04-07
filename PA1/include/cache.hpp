@@ -7,12 +7,9 @@
 
 class Cache {
   // 用于模拟硬件 Cache，总大小为 128KB
-  // 注意到块大小可能为 8B, 32B, 64B，
-  // 故元数据(Tag加上Valid和Dirty位)最多占用 56 位，最少占用 53 位，
-  // 故每项将使用 7 个 char
  public:
   static const int TOTAL_SIZE = 128 * 1024;
-  static const int ITEM_SIZE = 7;
+  static const int ADDR_BITS = 64;
     
   Cache() = delete;
 
@@ -27,7 +24,13 @@ class Cache {
     }
     this->groupNum = blockNum / ways;
     this->ways = ways;
-    this->items.resize(blockNum * ITEM_SIZE * 8);
+    this->blockBits = utils::lg2(blockNum);
+    this->indexBits = utils::lg2(TOTAL_SIZE / blockSize / ways);
+    this->tagBits = ADDR_BITS - blockBits - indexBits;
+    this->items = new Bitset[blockNum];
+    for (int i = 0; i < blockNum; ++i) {
+      this->items[i].resize(tagBits + 2);
+    }
 
     // 设置每个组的 strategy
     this->strategy = new ReplacementStrategy*[groupNum];
@@ -50,12 +53,25 @@ class Cache {
     }
   }
 
+  void analyze(unsigned long long addr, unsigned long long &tag, int &index) {
+    // 解析给定地址的tag以及index
+    index = utils::getBitsSeg(addr, blockBits, blockBits + indexBits);
+    tag = utils::getBitsSeg(addr, blockBits + indexBits, ADDR_BITS);
+  }
+
+  bool visit(unsigned long long addr, TraceType type) {
+    unsigned long long tag;
+    int index;
+    analyze(addr, tag, index);
+  }
+
  private:
   int blockSize;  // 8, 32 or 64
   int blockNum;   // number of blocks
   int ways;       // 1, 4, 8 or <number of blocks>
   int groupNum;   // number of groups, which is euqal to blockNum/ways
-  Bitset items;
+  int blockBits, indexBits, tagBits;  // bits of block, index and tag, which's sum is 64
+  Bitset *items;
   ReplacementStrategy **strategy;
   bool isWriteAllocate, isWriteBack;
 };

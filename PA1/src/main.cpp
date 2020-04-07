@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
+    
   }
   delete trace;
   return 0;
