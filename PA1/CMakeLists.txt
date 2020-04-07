@@ -3,6 +3,7 @@ PROJECT(PA1)
 
 add_compile_options(-g)
 add_compile_options(-O0)
+add_compile_options(-Wall -Wconversion -Wextra)
 
 SET(PA1_INCLUDES
         include/trace.hpp)

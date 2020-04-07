@@ -11,4 +11,4 @@ cmake ..
 make
 
 cd ..
-bin/PA1
+bin/PA1 $*
