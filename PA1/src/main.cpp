@@ -30,17 +30,27 @@ bool handleRead(int argc, char *argv[], char *filename, int &blockSize, int &way
       fail = true;
   }
   if (fail) {
-    printf("\nUsage: bash run.sh <filename> <blockSize> <ways> <strategy> <isWriteAllocate> <isWriteThrough>\n\
-            \rParameters:\n\
-            <filename>: the path of trace file, such as \"trace/gcc.trace\"\n\
-            <blockSize>: 8, 32 or 64 (Byte)\n\
-            <ways>: 1, 4, 8 or -1 (means full)\n\
-            <strategy>: 0 (LRU), 1 (RANDOM), 2 (BINARY_TREE)\n\
-            <isWriteAllocate>: 0 or 1\n\
-            <isWriteThrough>: 0 or 1\n");
+    printf("\nUsage: bash run.sh <filename> <blockSize> <ways> <strategy> <isWriteAllocate> <isWriteThrough>\n"
+            "Parameters:\n"
+            "  <filename>: the path of trace file, such as \"trace/gcc.trace\"\n"
+            "  <blockSize>: 8, 32 or 64 (Byte)\n"
+            "  <ways>: 1, 4, 8 or -1 (means full)\n"
+            "  <strategy>: 0 (LRU), 1 (RANDOM), 2 (BINARY_TREE)\n"
+            "  <isWriteAllocate>: 0 or 1\n"
+            "  <isWriteThrough>: 0 or 1\n");
     return false;
+  } else {
+    printf("\n"
+            "  <filename>: %s\n"
+            "  <blockSize>: %d\n"
+            "  <ways>: %d\n"
+            "  <strategy>: %s\n"
+            "  <isWriteAllocate>: %s\n"
+            "  <isWriteThrough>: %s\n",
+            filename, blockSize, ways, (strategy == 0 ? "LRU" : ((strategy == 1) ? "RANDOM" : "BINARY_TREE")),
+            (isWriteAllocate ? "true" : "false"), (isWriteThrough ? "true" : "false"));
+    return true;
   }
-  return true;
 }
 
 int main(int argc, char *argv[]) {
