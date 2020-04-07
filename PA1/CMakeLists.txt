@@ -4,11 +4,12 @@ PROJECT(PA1)
 add_compile_options(-g)
 add_compile_options(-O0)
 
-SET(PA1_SOURCES
-        src/main.cpp)
-
 SET(PA1_INCLUDES
-        include/test.hpp)
+        include/trace.hpp)
+
+SET(PA1_SOURCES
+        src/main.cpp
+        src/trace.cpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
