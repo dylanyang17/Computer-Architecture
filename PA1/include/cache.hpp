@@ -21,6 +21,7 @@ class Cache {
     if (ways == -1) {
       ways = blockNum;
     }
+    this->groupNum = this->blockNum / ways;
     this->ways = ways;
     this->items.resize(this->blockNum * ITEM_SIZE * 8);
   }
@@ -29,6 +30,7 @@ class Cache {
   int blockSize;  // 8, 32 or 64
   int blockNum;   // number of blocks
   int ways;       // 1, 4, 8 or <number of blocks>
+  int groupNum;   // number of groups, which is euqal to blockNum/ways
   Bitset items;
 };
 
