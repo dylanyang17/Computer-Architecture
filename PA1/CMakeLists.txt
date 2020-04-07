@@ -6,7 +6,11 @@ add_compile_options(-O0)
 add_compile_options(-Wall -Wconversion -Wextra)
 
 SET(PA1_INCLUDES
-        include/trace.hpp)
+        include/bitset.hpp
+        include/cache.hpp
+        include/replacement_strategy.hpp
+        include/trace.hpp
+        include/utils.hpp)
 
 SET(PA1_SOURCES
         src/main.cpp

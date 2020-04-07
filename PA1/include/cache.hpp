@@ -1,6 +1,7 @@
 #ifndef CACHE_HPP
 #define CACHE_HPP
 
+#include <trace.hpp>
 #include <bitset.hpp>
 #include <replacement_strategy.hpp>
 
