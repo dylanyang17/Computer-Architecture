@@ -1,6 +1,7 @@
 #ifndef CACHE_HPP
 #define CACHE_HPP
 
+#include <iostream>
 #include <trace.hpp>
 #include <bitset.hpp>
 #include <replacement_strategy.hpp>
@@ -24,7 +25,7 @@ class Cache {
     }
     this->groupNum = blockNum / ways;
     this->ways = ways;
-    this->blockBits = utils::lg2(blockNum);
+    this->blockBits = utils::lg2(blockSize);
     this->indexBits = utils::lg2(TOTAL_SIZE / blockSize / ways);
     this->tagBits = ADDR_BITS - blockBits - indexBits;
     this->items = new Bitset[blockNum];
