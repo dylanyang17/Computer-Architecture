@@ -65,11 +65,11 @@ int main(int argc, char *argv[]) {
   }
 
   Trace *trace = new Trace();
-  FILE *file = fopen(filename, "r");
+  FILE *file = fopen(filename, "r"), *logFile;
   if (file == NULL) {
     printf("Error: File \"%s\" does not exist.\n", filename);
   } else {
-    FILE *logFile = fopen("logs/", "w");
+    logFile = fopen("logs/log.json", "w");
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
@@ -81,9 +81,10 @@ int main(int argc, char *argv[]) {
       cnt += suc;
       // if (i % 1000 == 0) printf("%d\n", i);
     }
-    printf("Rate: %.6f\n", 1 - (double)cnt / trace->size());
+    printf("Rate: %.6f\n", 1 - (double)cnt/trace->size());
   }
   delete trace;
   fclose(file);
+  fclose(logFile);
   return 0;
 }
