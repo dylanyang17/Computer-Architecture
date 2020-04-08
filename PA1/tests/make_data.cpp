@@ -25,14 +25,16 @@ unsigned long long getItem(unsigned long long tag, unsigned long long index, int
 }
 
 unsigned long long rd(unsigned long long l, unsigned long long r) {
-  return ((unsigned long long)rand() << 48) | ((unsigned long long)rand() << 32) | ((unsigned long long)rand() << 16) | ((unsigned long long)rand());
+  return (((unsigned long long)rand() << 48) | ((unsigned long long)rand() << 32) | ((unsigned long long)rand() << 16) | ((unsigned long long)rand())) % (r - l + 1) + l;
 }
 
 int main(int argc, char *argv[]) {
+  // Usage: tests/make_data <blockSize> <ways> <len> > trace/test.trace
   // 暂时只使用一种格式——即仅地址的格式
+  FILE* logFile = fopen("tests/log", "w");
   srand(time(NULL) + (long long)new int);
   assert(argc == 4);
-  ways = atoi(argv[1]), blockSize = atoi(argv[2]), len = atoi(argv[3]);
+  blockSize = atoi(argv[1]), ways = atoi(argv[2]), len = atoi(argv[3]);
 
   blockNum = TOTAL_SIZE / blockSize, groupNum = blockNum / ways;
   blockBits = lg2(blockSize);
@@ -44,6 +46,8 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < len; ++i) {
     // 都在同一组内测试
-    printf("0x%llx\n", getItem(rd(0,3), 1, 0));
+    int tag, index, offset;
+    printf("0x%llx\n", getItem(tag=rd(0,ways*2), index=rd(0,3), offset=0));
+    fprintf(logFile, "tag: %lld, index: %lld, offset: %lld\n", tag, index, offset);
   }
 }

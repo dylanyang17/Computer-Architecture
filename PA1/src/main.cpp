@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
       bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
       bool bfsuc = bfcache->visit((*trace)[i].addr, (*trace)[i].type);
       if (suc != bfsuc) {
-        printf("WAAAAAA: %d", i);
+        printf("WAAAAAA: %d. suc: %d, bfsuc: %d.", i, (int)suc, (int)bfsuc);
         return 0;
       }
       cnt += suc;

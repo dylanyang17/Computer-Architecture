@@ -95,7 +95,7 @@ class LRUStrategy: public ReplacementStrategy {
     for (int i = ind - 1; i >= 0; --i) {
       set(i + 1, get(i));
     }
-    set(0, ind);
+    set(0, tmp);
     return tmp;
   }
 
