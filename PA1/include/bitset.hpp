@@ -58,6 +58,9 @@ class Bitset {
 
   void assignSeg(int beg, int end, unsigned long long val) {
     // 设置第 [beg, end) 位，变为值 val
+    if (beg < 0 || beg >= bnum) {
+      printf("lalala");
+    }
     assert(beg >= 0 && beg < bnum);
     assert(end > 0 && end <= bnum);
     int tnum = end - beg;

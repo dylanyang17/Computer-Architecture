@@ -156,4 +156,4 @@ class BruteForceCache {
   int blockBits, indexBits, tagBits;  // bits of block, index and tag, which's sum is 64
   bool isWriteAllocate, isWriteBack;
   BruteForceCacheGroup *groups;
-}
+};

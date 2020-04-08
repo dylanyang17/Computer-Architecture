@@ -22,7 +22,7 @@ bool handleRead(int argc, char *argv[], char *&filename, int &blockSize, int &wa
 
     if(!(blockSize == 8 || blockSize == 32 || blockSize == 64))
       fail = true;
-    if(!(ways == 1 || ways == 4 || ways == 8 || ways == -1))
+    if(!(ways == 1 || ways == 2 || ways == 4 || ways == 8 || ways == -1))
       fail = true;
     if(!(strategy == 0 || strategy == 1 || strategy == 2))
       fail = true;
@@ -36,7 +36,7 @@ bool handleRead(int argc, char *argv[], char *&filename, int &blockSize, int &wa
             "Parameters:\n"
             "  <filename>: the path of trace file, such as \"trace/gcc.trace\"\n"
             "  <blockSize>: 8, 32 or 64 (Byte)\n"
-            "  <ways>: 1, 4, 8 or -1 (means full)\n"
+            "  <ways>: 1, 2, 4, 8 or -1 (means full)\n"
             "  <strategy>: 0 (LRU), 1 (RANDOM), 2 (BINARY_TREE)\n"
             "  <isWriteAllocate>: 0 or 1\n"
             "  <isWriteBack>: 0 or 1\n");
@@ -72,11 +72,18 @@ int main(int argc, char *argv[]) {
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
+    BruteForceCache *bfcache = new BruteForceCache(blockSize, ways, static_cast<StrategyType>(strategy),
+      isWriteAllocate, isWriteBack);
     
     int cnt = 0;
     printf("tot: %d\n", trace->size());
     for (int i = 0; i < trace->size(); ++i) {
       bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
+      bool bfsuc = bfcache->visit((*trace)[i].addr, (*trace)[i].type);
+      if (suc != bfsuc) {
+        printf("WAAAAAA: %d", i);
+        return 0;
+      }
       cnt += suc;
       // if (i % 1000 == 0) printf("%d\n", i);
     }

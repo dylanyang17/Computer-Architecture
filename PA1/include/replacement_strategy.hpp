@@ -5,7 +5,7 @@
 #include <utils.hpp>
 
 enum class StrategyType: int {
-  LRU = 0, RAMDOM = 1, BINARY_TREE = 2
+  LRU = 0, RANDOM = 1, BINARY_TREE = 2
 };
 
 class ReplacementStrategy {
