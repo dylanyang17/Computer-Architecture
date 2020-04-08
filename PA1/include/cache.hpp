@@ -29,7 +29,7 @@ class CacheGroup {
       // TODO
       break;
     case StrategyType::BINARY_TREE:
-      // TODO
+      strategy = new BinaryTreeStrategy(ways);
       break;
     default:
       assert(0);

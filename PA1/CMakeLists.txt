@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 PROJECT(PA1)
 
 add_compile_options(-g)
-add_compile_options(-O0)
+# add_compile_options(-O2)
 add_compile_options(-Wall -Wconversion -Wextra)
 
 SET(PA1_INCLUDES
@@ -10,7 +10,8 @@ SET(PA1_INCLUDES
         include/cache.hpp
         include/replacement_strategy.hpp
         include/trace.hpp
-        include/utils.hpp)
+        include/utils.hpp
+        include/brute_force_cache.hpp)
 
 SET(PA1_SOURCES
         src/main.cpp

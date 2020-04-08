@@ -10,7 +10,62 @@ enum class StrategyType: int {
 
 class ReplacementStrategy {
  public:
-  virtual int placeIn(int i) = 0;
+  virtual int placeIn(int val) = 0;
+};
+
+class BinaryTreeStrategy: public ReplacementStrategy {
+ public:
+  BinaryTreeStrategy() = delete;
+
+  BinaryTreeStrategy(int ways) {
+    this->ways = ways;
+    this->h = utils::lg2(ways);
+    data.resize(ways);
+  }
+
+  bool getAllValid() {
+    return data.get(ways - 1);
+  }
+
+  void setAllValid(bool valid) {
+    data.set(ways - 1, valid);
+  }
+
+  void visitAlongTree(int val) {
+    // 沿着树访问 val
+    int now = 0;
+    for (int i = h - 1; i >= 0; --i) {
+      bool lr = ((val >> i) & 1);
+      data.set(now, lr ^ 1);
+      now = ((now << 1) | lr);
+    }
+  }
+
+  int visitAlongTree() {
+    // 沿着树找到替换结点
+    int now = 0;
+    for (int i = h - 1; i >= 0; --i) {
+      bool lr = data.get(now);
+      data.set(now, lr ^ 1);
+      now = ((now << 1) | lr);
+    }
+    return now;
+  }
+
+  int placeIn(int val) override {
+    // val 为 -1 时表示发生满替换
+    if (val == -1) {
+      return visitAlongTree();
+    } else {
+      visitAlongTree(val);
+      return -1;
+    }
+  }
+
+ private:
+  Bitset data;
+  int ways;
+  int h;  // 树高（注意单个根结点时树高为 0，但此处树高算上了未存储的叶子结点）
 };
 
 class LRUStrategy: public ReplacementStrategy {
@@ -71,6 +126,7 @@ class LRUStrategy: public ReplacementStrategy {
       } else if (len < ways) {
         // 未满且缺失
         set(len++, val);
+        makeTop(len - 1);
         ret = -1;
       }
     }

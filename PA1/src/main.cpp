@@ -1,6 +1,7 @@
 #include <trace.hpp>
 #include <cache.hpp>
 #include <replacement_strategy.hpp>
+#include <brute_force_cache.hpp>
 #include <cstdio>
 #include <cstdlib>
 
@@ -71,10 +72,13 @@ int main(int argc, char *argv[]) {
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
+    
     int cnt = 0;
+    printf("tot: %d\n", trace->size());
     for (int i = 0; i < trace->size(); ++i) {
       bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
       cnt += suc;
+      // if (i % 1000 == 0) printf("%d\n", i);
     }
     printf("Rate: %.6f\n", 1 - (double)cnt / trace->size());
   }
