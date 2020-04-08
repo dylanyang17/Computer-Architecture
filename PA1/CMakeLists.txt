@@ -3,7 +3,7 @@ PROJECT(PA1)
 
 add_compile_options(-g)
 # add_compile_options(-O2)
-add_compile_options(-Wall -Wconversion -Wextra)
+# add_compile_options(-Wall -Wconversion -Wextra)
 
 SET(PA1_INCLUDES
         include/bitset.hpp
