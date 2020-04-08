@@ -64,6 +64,11 @@ class BruteForceCacheGroup {
     LRUVec.insert(LRUVec.begin(), tmp);
   }
 
+  bool BTVisit(unsigned long long tag, TraceType type) {
+    // 使用 BT 方式 visit，假设写分配，且暂不处理 dirty
+    assert(0);
+  }
+
   bool LRUVisit(unsigned long long tag, TraceType type) {
     // 使用 LRU 方式 visit，假设写分配，且暂不处理 dirty
     int i = find(tag), ei = findEmpty();
@@ -97,7 +102,7 @@ class BruteForceCacheGroup {
     if (strategyType == StrategyType::LRU) {
       return LRUVisit(tag, type);
     } else if (strategyType == StrategyType::BINARY_TREE) {
-      // TODO
+      return BTVisit(tag, type);
     } else if (strategyType == StrategyType::RANDOM) {
       // TODO
     }

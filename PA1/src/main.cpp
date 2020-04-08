@@ -69,26 +69,21 @@ int main(int argc, char *argv[]) {
   if (file == NULL) {
     printf("Error: File \"%s\" does not exist.\n", filename);
   } else {
+    FILE *logFile = fopen("logs/", "w");
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
-      isWriteAllocate, isWriteBack);
-    BruteForceCache *bfcache = new BruteForceCache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
     
     int cnt = 0;
     printf("tot: %d\n", trace->size());
     for (int i = 0; i < trace->size(); ++i) {
       bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
-      bool bfsuc = bfcache->visit((*trace)[i].addr, (*trace)[i].type);
-      if (suc != bfsuc) {
-        printf("WAAAAAA: %d. suc: %d, bfsuc: %d.", i, (int)suc, (int)bfsuc);
-        return 0;
-      }
       cnt += suc;
       // if (i % 1000 == 0) printf("%d\n", i);
     }
     printf("Rate: %.6f\n", 1 - (double)cnt / trace->size());
   }
   delete trace;
+  fclose(file);
   return 0;
 }

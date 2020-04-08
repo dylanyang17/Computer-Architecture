@@ -16,24 +16,28 @@ class CacheGroup {
     this->tagBits = tagBits;
     this->isWriteAllocate = isWriteAllocate;
     this->isWriteBack = isWriteBack;
+    this->strategyType = strategyType;
     items = new Bitset[ways];
     for (int i = 0; i < ways; ++i) {
       items[i].resize(tagBits + 2);
     }
-    switch (strategyType)
-    {
-    case StrategyType::LRU:
-      strategy = new LRUStrategy(ways);
-      break;
-    case StrategyType::RANDOM:
-      // TODO
-      break;
-    case StrategyType::BINARY_TREE:
-      strategy = new BinaryTreeStrategy(ways);
-      break;
-    default:
-      assert(0);
-      break;
+    if (ways != 1) {
+      // 直接相联时不需要使用替换算法
+      switch (strategyType)
+      {
+      case StrategyType::LRU:
+        strategy = new LRUStrategy(ways);
+        break;
+      case StrategyType::RANDOM:
+        // TODO
+        break;
+      case StrategyType::BINARY_TREE:
+        strategy = new BinaryTreeStrategy(ways);
+        break;
+      default:
+        assert(0);
+        break;
+      }
     }
   }
 
@@ -97,12 +101,18 @@ class CacheGroup {
       if ((type == TraceType::DEFAULT || type == TraceType::LOAD || type == TraceType::READ) ||
           ((type == TraceType::STORE || type == TraceType::WRITE) && isWriteAllocate)) {
         // 需要进行分配
-        if (ei != -1) {
-          // 有空位
-          strategy->placeIn(ei);
+        if (ways == 1) {
+          // 直接相联，直接找到下标 0
+          ei = 0;
         } else {
-          // 没有空位，利用替换策略找到替换出去的下标
-          ei = strategy->placeIn(-1);
+          // 非直接相联
+          if (ei != -1) {
+            // 有空位
+            strategy->placeIn(ei);
+          } else {
+            // 没有空位，利用替换策略找到替换出去的下标
+            ei = strategy->placeIn(-1);
+          }
         }
         setValid(ei, true);
         setDirty(ei, false);
@@ -111,7 +121,10 @@ class CacheGroup {
       ret = false;
     } else {
       // Hit
-      strategy->placeIn(i);
+      if (ways != 1) {
+        // 非直接相联时才对替换算法对应结构进行操作
+        strategy->placeIn(i);
+      }
       if ((type == TraceType::STORE || type == TraceType::WRITE) && isWriteBack) {
         setDirty(i, true);
       }
@@ -124,6 +137,7 @@ class CacheGroup {
   bool isWriteAllocate, isWriteBack;
   int ways, tagBits;
   ReplacementStrategy *strategy;
+  StrategyType strategyType;
   Bitset *items;
 };
 

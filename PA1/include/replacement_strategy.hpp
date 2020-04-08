@@ -37,7 +37,7 @@ class BinaryTreeStrategy: public ReplacementStrategy {
     for (int i = h - 1; i >= 0; --i) {
       bool lr = ((val >> i) & 1);
       data.set(now, lr ^ 1);
-      now = ((now << 1) | lr);
+      now = ((now << 1) + 1 + lr);
     }
   }
 
@@ -47,9 +47,9 @@ class BinaryTreeStrategy: public ReplacementStrategy {
     for (int i = h - 1; i >= 0; --i) {
       bool lr = data.get(now);
       data.set(now, lr ^ 1);
-      now = ((now << 1) | lr);
+      now = ((now << 1) + 1 + lr);
     }
-    return now;
+    return now - (ways - 1);
   }
 
   int placeIn(int val) override {
