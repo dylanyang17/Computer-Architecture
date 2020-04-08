@@ -55,6 +55,8 @@ bool handleRead(int argc, char *argv[], char *&filename, int &blockSize, int &wa
   }
 }
 
+char tmpS[205];
+
 int main(int argc, char *argv[]) {
   // 输入并且保证参数正确性
   bool fail = false;
@@ -63,28 +65,32 @@ int main(int argc, char *argv[]) {
   if (!handleRead(argc, argv, filename, blockSize, ways, strategy, isWriteAllocate, isWriteBack)) {
     return 0;
   }
-
   Trace *trace = new Trace();
-  FILE *file = fopen(filename, "r"), *logFile;
+  FILE *file = fopen(filename, "r"), *jsonFile, *hmFile;  // jsonFile 存储汇总信息，hmFile 存储Hit/Miss
   if (file == NULL) {
     printf("Error: File \"%s\" does not exist.\n", filename);
   } else {
-    logFile = fopen("logs/log.json", "w");
+    sprintf(tmpS, "logs/%s_bs_%d_ways_%d_stra_%d_iwa_%s_iwb_%s.txt", filename+6, blockSize, ways, strategy,
+    utils::getBoolString(isWriteAllocate), utils::getBoolString(isWriteBack));
+    jsonFile = fopen("logs/log.json", "a");
+    hmFile = fopen(tmpS, "w");
     trace->readItems(file);
     Cache *cache = new Cache(blockSize, ways, static_cast<StrategyType>(strategy),
       isWriteAllocate, isWriteBack);
-    
     int cnt = 0;
     printf("tot: %d\n", trace->size());
     for (int i = 0; i < trace->size(); ++i) {
       bool suc = cache->visit((*trace)[i].addr, (*trace)[i].type);
       cnt += suc;
+      fprintf(hmFile, "%s\n", (suc ? "Hit" : "Miss"));
       // if (i % 1000 == 0) printf("%d\n", i);
     }
-    printf("Rate: %.6f\n", 1 - (double)cnt/trace->size());
+    double rate = 1 - (double)cnt/trace->size();
+    printf("Rate: %.6f\n", rate);
+    utils::fprintJson(jsonFile, filename, blockSize, ways, strategy, isWriteAllocate, isWriteBack, rate);
   }
   delete trace;
   fclose(file);
-  fclose(logFile);
+  fclose(jsonFile);
   return 0;
 }

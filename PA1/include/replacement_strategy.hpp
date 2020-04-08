@@ -3,6 +3,7 @@
 
 #include <bitset.hpp>
 #include <utils.hpp>
+#include <random>
 
 enum class StrategyType: int {
   LRU = 0, RANDOM = 1, BINARY_TREE = 2
@@ -11,6 +12,23 @@ enum class StrategyType: int {
 class ReplacementStrategy {
  public:
   virtual int placeIn(int val) = 0;
+};
+
+class RandomStrategy: public ReplacementStrategy {
+ public:
+  RandomStrategy() = delete;
+
+  RandomStrategy(int ways) {
+    srand(19961202);  // 固定种子，便于重复实验
+    this->ways = ways;
+  }
+
+  int placeIn(int val) {
+    return rand() % ways;
+  }
+
+ private:
+  int ways;
 };
 
 class BinaryTreeStrategy: public ReplacementStrategy {

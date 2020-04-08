@@ -29,7 +29,7 @@ class CacheGroup {
         strategy = new LRUStrategy(ways);
         break;
       case StrategyType::RANDOM:
-        // TODO
+        strategy = new RandomStrategy(ways);
         break;
       case StrategyType::BINARY_TREE:
         strategy = new BinaryTreeStrategy(ways);
