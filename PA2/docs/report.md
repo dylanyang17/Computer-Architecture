@@ -2,7 +2,7 @@
 
 ## 指令
 
-定义 Instruction 类表示指令，type 表示指令类型, 整型变量 op1, op2, op3 分为表示三个操作数，如果某操作数为 REGISTER，则存储其编号，若为 INTEGER 则直接存储其值。类型分类如下：
+定义结构体 Instruction 表示指令，type 表示指令类型, 整型变量 op1, op2, op3 分为表示三个操作数，如果某操作数为 REGISTER，则存储其编号，若为 INTEGER 则直接存储其值。类型分类如下：
 
 * ADD 类型；
 * SUB 类型；
