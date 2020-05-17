@@ -1,3 +1,6 @@
+#ifndef INSTRUCTION_HPP
+#define INSTRUCTION_HPP
+
 #include <string>
 #include <vector>
 #include <cassert>
@@ -96,3 +99,5 @@ struct Instruction {
             || type == Type::MUL || type == Type::DIV;
     }
 };
+
+#endif // !INSTRUCTION_HPP
