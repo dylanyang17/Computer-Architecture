@@ -1,5 +1,8 @@
 #include <string>
+#include <vector>
 #include <cassert>
+using std::vector;
+using std::string;
 
 struct Instruction {
     enum class Type {
@@ -21,30 +24,44 @@ struct Instruction {
         op3 = _op3;
     }
 
-    Instruction(std::string s) {
+    Instruction(string s) {
         int last = -1;          // 上一个逗号的索引
         int pos = s.find(',');  // 当前逗号的索引
-        std::string typeStr = s.substr(last+1, pos-last-1);
+        string typeStr = s.substr(last+1, pos-last-1);
         this->type = stringToType(typeStr);
         last = pos;
         pos = s.find(',', last+1);
-        std::string opStr1 = s.substr(last+1, pos-last-1);
+        string opStr1 = s.substr(last+1, pos-last-1);
         this->op1 = stringToOp(opStr1, isFunctional(type) || type == Type::LOAD);
         if (type == Type::LOAD) {
-            std::string opStr2 = s.substr(pos+1);
+            string opStr2 = s.substr(pos+1);
             this->op2 = stringToOp(opStr2, false);
         } else {
             last = pos;
             pos = s.find(',', last+1);
-            std::string opStr2 = s.substr(last+1, pos-last-1);
+            string opStr2 = s.substr(last+1, pos-last-1);
             this->op2 = stringToOp(opStr2, true);
-            std::string opStr3 = s.substr(pos+1);
+            string opStr3 = s.substr(pos+1);
             this->op3 = stringToOp(opStr3, isFunctional(type));
         }
     }
 
+    // 读取文件得到指令
+    static vector<Instruction> readFile(string path) {
+        char tmp[100];
+        FILE* file = fopen(path.c_str(), "r");
+        vector<Instruction> ret;
+        while(!feof(file)) {
+            fgets(tmp, 100, file);
+            string s = tmp;
+            ret.push_back(Instruction(s));
+        }
+        fclose(file);
+        return ret;
+    }
+
     // 从 string 类型转换为 op, isRegister 为 true 表示为寄存器否则为十六进制值
-    static int stringToOp(std::string s, bool isRegister) {
+    static int stringToOp(string s, bool isRegister) {
         if (isRegister) {
             return atoi(s.substr(1).c_str());
         } else {
@@ -55,7 +72,7 @@ struct Instruction {
     }
 
     // 从 string 类型转换为 Type
-    static Type stringToType(std::string s) {
+    static Type stringToType(string s) {
         if (s == "ADD") {
             return Type::ADD;
         } else if (s == "SUB") {
