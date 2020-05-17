@@ -6,7 +6,8 @@ add_compile_options(-g)
 # add_compile_options(-Wall -Wconversion -Wextra)
 
 SET(PA2_SOURCES
-        src/main.cpp)
+        src/main.cpp
+        src/test.cpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

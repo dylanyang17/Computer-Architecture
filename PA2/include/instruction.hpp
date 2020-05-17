@@ -49,6 +49,15 @@ struct Instruction {
         }
     }
 
+    bool operator==(const Instruction b) const {
+        if (this->type != b.type) return false;
+        if (this->type == Type::LOAD) {
+            return this->op1 == b.op1 && this->op2 == b.op2;
+        } else {
+            return this->op1 == b.op1 && this->op2 == b.op2 && this->op3 == b.op3;
+        }
+    }
+
     // 读取文件得到指令
     static vector<Instruction> readFile(string path) {
         char tmp[100];
