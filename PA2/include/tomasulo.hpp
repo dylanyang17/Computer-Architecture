@@ -39,7 +39,7 @@ class Tomasulo {
     }
 
     // 寻找空闲的保留站
-    ReservationStation* getRs(Instruction instruction) {
+    ReservationStation* findEmptyRs(Instruction instruction) {
         Instruction::Type type = instruction.type;
         if (Instruction::isAddGroup(type)) {
             // 使用加减法器
@@ -77,10 +77,10 @@ class Tomasulo {
     }
 
     // 尝试进行发射 instruction
-    void tryIssue(Instruction instruction) {
-        if (hasJump || pc >= instructions.size()) return;
-        ReservationStation* rs = getRs(instruction);
-        if (rs == NULL) return;
+    bool tryIssue(Instruction instruction) {
+        if (hasJump || pc >= instructions.size()) return false;
+        ReservationStation* rs = findEmptyRs(instruction);
+        if (rs == NULL) return false;
         // 有空余的保留站
         rs->isBusy = true;
         rs->type = instruction.type;
@@ -109,14 +109,52 @@ class Tomasulo {
             // 修改目标寄存器的状态
             registerState[target].state = rs;
         }
+        return true;
+    }
+
+    // 寻找空闲的 unit
+    int findEmptyUnit(vector<UnitState>& units) {
+        int ret = -1;
+        for (int i = 0; i < units.size(); ++i) {
+            if (units[i].rs == NULL) {
+                ret = i;
+                break;
+            }
+        }
+        return ret;
+    }
+
+    bool tryExecuteOne(ReservationStation* rs) {
+        if (rs->type == ReservationStation::Type::FUNCTIONAL) {
+            FunctionalBuffer* fb = (FunctionalBuffer*) rs;
+            if (Instruction::isAddGroup(fb->op)) {
+                int pos = findEmptyUnit(unitAdd);
+                if (pos == -1) return false;
+                if (fb->type == Instruction::Type::JUMP) {
+                    // 特殊处理 jump 指令
+                } else {
+                    // 普通加减法
+                }
+            } else if (Instruction::isMultGroup(fb->op)) {
+                int pos = findEmptyUnit(unitMult);
+                if (pos == -1) return false;
+
+            }
+        } else {
+            LoadBuffer* b = (LoadBuffer*) rs;
+            int pos = findEmptyUnit(unitLoad);
+            if (pos == -1) return false;
+            
+        }
     }
 
     // 尝试开始执行已经就绪的指令
     void tryExecute() {
         list<ReservationStation*>::iterator it;
         for (it = rsQue.begin(); it != rsQue.end();) {
-            if () {
-                // TODO: 若就绪且有空余部件
+            if (tryExecuteOne(*it)) {
+                // 若加入执行成功
+                it = rsQue.erase(it);
             } else {
                 ++it;
             }

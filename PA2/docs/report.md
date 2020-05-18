@@ -42,9 +42,9 @@
 
 每个运算部件（包括功能运算部件和Load运算部件）用一个结构体 UnitState 存储，包含：
 
-* 整型变量 instId 表示该运算部件当前正在执行的指令下标（-1 表示该运算部件空闲）；
+* 整型变量 instId 表示该运算部件当前正在执行的指令下标；
 * 整型变量 countdown 表示剩余周期数；
-* ReservationStation\* 类型变量 rs 表示对应的保留站。
+* ReservationStation\* 类型变量 rs 表示对应的保留站（NULL 表示该部件空闲）。
 
 不同类型的运算部件使用不同的数组来区分即可，例如 unitStateAdd[3], unitStateMult[2], unitStateLoad[2]。
 

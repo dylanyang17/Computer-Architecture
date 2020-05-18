@@ -102,6 +102,25 @@ struct Instruction {
         }
     }
 
+    // 获得指令需要执行的周期数
+    static int getCycleNeeded(Type type) {
+        if (type == Type::ADD) {
+            return 3;
+        } else if (type == Type::SUB) {
+            return 3;
+        } else if (type == Type::MUL) {
+            return 4;
+        } else if (type == Type::DIV) {
+            return 4;
+        } else if (type == Type::LOAD) {
+            return 3;
+        } else if (type == Type::JUMP) {
+            return 1;
+        } else {
+            assert(0);
+        }
+    }
+
     // 判断某个类型是否为功能类型
     static bool isFunctional(Type type) {
         return type == Type::ADD || type == Type::SUB
