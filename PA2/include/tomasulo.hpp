@@ -18,6 +18,7 @@ class Tomasulo {
   public:
     void run(string path, bool displayOn) {
         init();
+        this->displayOn = displayOn;
         instructions = Instruction::readFile(path);
         int size = instructions.size();
         issueCycle.reserve(size);
@@ -366,7 +367,7 @@ class Tomasulo {
     // 进入下一个 cycle
     void nextCycle() {
         ++cycle;
-        printf("正在执行 pc %d, cycle %d...\n", pc, cycle);
+        if (displayOn) printf("正在执行 pc %d, cycle %d...\n", pc, cycle);
         tryWriteBack();
         tryIssue();
         tryExecute();
@@ -413,6 +414,7 @@ class Tomasulo {
     list<ReservationStation*> rsQue;  // 暂未就绪的 rs 链表
 
     vector<int> issueCycle, doneCycle, wbCycle;
+    bool displayOn;
 };
 
 #endif // !TOMASULO_HPP
