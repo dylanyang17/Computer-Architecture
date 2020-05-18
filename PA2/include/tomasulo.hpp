@@ -84,6 +84,7 @@ class Tomasulo {
         // 有空余的保留站
         rs->isBusy = true;
         rs->type = instruction.type;
+        rs->instId = pc;
         int target = -1;  // 目标寄存器
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
             FunctionalBuffer* fb = (FunctionalBuffer*) rs;
@@ -109,6 +110,7 @@ class Tomasulo {
             // 修改目标寄存器的状态
             registerState[target].state = rs;
         }
+        ++pc;
         return true;
     }
 
@@ -125,27 +127,42 @@ class Tomasulo {
     }
 
     bool tryExecuteOne(ReservationStation* rs) {
+        UnitState *unit;
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
             FunctionalBuffer* fb = (FunctionalBuffer*) rs;
             if (Instruction::isAddGroup(fb->op)) {
+                // 使用加减法器
                 int pos = findEmptyUnit(unitAdd);
                 if (pos == -1) return false;
-                if (fb->type == Instruction::Type::JUMP) {
-                    // 特殊处理 jump 指令
-                } else {
-                    // 普通加减法
-                }
+                unit = &unitAdd[pos];
+                unit->rs = rs;
+                unit->instId = rs->instId;
+                unit->countdown = Instruction::getCycleNeeded(fb->type);
             } else if (Instruction::isMultGroup(fb->op)) {
+                // 使用乘除法器
                 int pos = findEmptyUnit(unitMult);
                 if (pos == -1) return false;
-
+                unit = &unitMult[pos];
+                unit->rs = rs;
+                unit->instId = rs->instId;
+                unit->countdown = Instruction::getCycleNeeded(fb->type);
+                if (fb->type == Instruction::Type::DIV && fb->vk == 0) {
+                    // 特殊处理除零的情况
+                    fb->vk = 1;
+                    unit->countdown = 1;
+                }
             }
         } else {
+            // 使用 Load 部件
             LoadBuffer* b = (LoadBuffer*) rs;
             int pos = findEmptyUnit(unitLoad);
             if (pos == -1) return false;
-            
+            unit = &unitLoad[pos];
+            unit->rs = rs;
+            unit->instId = rs->instId;
+            unit->countdown = Instruction::getCycleNeeded(Instruction::Type::LOAD);
         }
+        return true;
     }
 
     // 尝试开始执行已经就绪的指令

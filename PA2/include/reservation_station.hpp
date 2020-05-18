@@ -21,6 +21,7 @@ class ReservationStation {
 
     Type type;      // 类型，用于确定是 Functional 还是 Load
     bool isBusy;    // 是否包含指令
+    int instId;     // 对应指令的索引
 
 };
 
