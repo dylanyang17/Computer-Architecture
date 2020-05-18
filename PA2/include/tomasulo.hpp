@@ -26,12 +26,33 @@ class Tomasulo {
     }
 
   private:
+    void printUnit() {
+        printf("Units:\n");
+        for (int i = 0; i < unitAdd.size(); ++i) {
+            if (unitAdd[i].rs != NULL) {
+                printf("unitAdd%d:: instId: %d  countdown: %d\n", i+1, unitAdd[i].instId ,unitAdd[i].countdown);
+            }
+        }
+        for (int i = 0; i < unitMult.size(); ++i) {
+            if (unitMult[i].rs != NULL) {
+                printf("unitMult%d:: instId: %d  countdown: %d\n", i+1, unitMult[i].instId ,unitMult[i].countdown);
+            }
+        }
+        for (int i = 0; i < unitLoad.size(); ++i) {
+            if (unitLoad[i].rs != NULL) {
+                printf("unitLoad%d:: instId: %d  countdown: %d\n", i+1, unitLoad[i].instId ,unitLoad[i].countdown);
+            }
+        }
+        printf("\n");
+    }
+
     void printLoadBuffer() {
         printf("Load Buffer:\n");
         for (int i = 0; i < lb.size(); ++i) {
             printf("%d:: Busy: %s  Address: %d\n", i, (lb[i].isBusy ? "True" : "False"),
                 lb[i].addr);
         }
+        printf("\n");
     }
 
     // 保证为 FunctionalBuffer
@@ -54,6 +75,7 @@ class Tomasulo {
         for (int i = 0; i < mrs.size(); ++i) {
             printRSOne(&mrs[i]);
         }
+        printf("\n");
     }
 
     void printRegister() {
@@ -63,12 +85,14 @@ class Tomasulo {
             printf("%d:: value: %s\n", i, 
                 ((reg->state == NULL) ? to_string(reg->value).c_str() : reg->state->name.c_str()));
         }
+        printf("\n");
     }
 
     // 打印瞬时状态
     void printNowState() {
         printf("打印 cycle %d 的瞬时状态...\n", cycle);
         printLoadBuffer();
+        printUnit();
         printRS();
         printRegister();
         printf("\n");
@@ -147,6 +171,7 @@ class Tomasulo {
         int target = -1;  // 目标寄存器
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
             FunctionalBuffer* fb = (FunctionalBuffer*) rs;
+            fb->op = instruction.type;
             if (instruction.type == Instruction::Type::JUMP) {
                 // JUMP 指令
                 jumpInt1 = instruction.op1;
@@ -261,7 +286,7 @@ class Tomasulo {
                     res = fb->vj / fb->vk;
                 } else if (fb->op == Instruction::Type::JUMP) {
                     if (fb->vj == jumpInt1) {
-                        pc += jumpInt2;
+                        pc += jumpInt2 - 1;
                     }
                     hasJump = false;
                     wb = false;
@@ -288,6 +313,7 @@ class Tomasulo {
                 for (int i = 0; i < 32; ++i) {
                     if (registerState[i].state == unit->rs) {
                         registerState[i].value = res;
+                        registerState[i].state = NULL;
                     }
                 }
             }
@@ -338,11 +364,11 @@ class Tomasulo {
         unitMult.clear();
         unitLoad.clear();
         // 6 个加减法保留站
-        for (int i = 0; i < 6; ++i) ars.push_back(FunctionalBuffer(string("Ars") + to_string(i)));
+        for (int i = 0; i < 6; ++i) ars.push_back(FunctionalBuffer(string("Ars") + to_string(i+1)));
         // 3 个乘除法保留站
-        for (int i = 0; i < 3; ++i) mrs.push_back(FunctionalBuffer(string("Mrs") + to_string(i)));
+        for (int i = 0; i < 3; ++i) mrs.push_back(FunctionalBuffer(string("Mrs") + to_string(i+1)));
         // 3 个 LoadBuffer
-        for (int i = 0; i < 3; ++i) lb.push_back(LoadBuffer(string("LB") + to_string(i)));
+        for (int i = 0; i < 3; ++i) lb.push_back(LoadBuffer(string("LB") + to_string(i+1)));
         // 3 个加减法器
         for (int i = 0; i < 3; ++i) unitAdd.push_back(UnitState());
         // 2 个乘除法器

@@ -32,6 +32,7 @@ class FunctionalBuffer : public ReservationStation {
   public:
     FunctionalBuffer(string _name) : ReservationStation(Type::FUNCTIONAL, _name) {
         qj = qk = NULL;
+        vj = vk = 0;
     }
 
     bool isReady() {
