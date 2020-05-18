@@ -4,10 +4,12 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <list>
 #include "instruction.hpp"
 #include "reservation_station.hpp"
 #include "register_state.hpp"
 #include "unit_state.hpp"
+using std::list;
 using std::vector;
 using std::string;
 
@@ -109,17 +111,31 @@ class Tomasulo {
         }
     }
 
-    // 执行当前 cycle 并时间推移到下一个 cycle
+    // 尝试开始执行已经就绪的指令
+    void tryExecute() {
+        list<ReservationStation*>::iterator it;
+        for (it = rsQue.begin(); it != rsQue.end();) {
+            if () {
+                // TODO: 若就绪且有空余部件
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    // 进入下一个 cycle
     void nextCycle() {
+        ++cycle;
         Instruction instruction = instructions[pc];
         tryIssue(instruction);
+        tryExecute();
     }
 
     // 初始化各变量
     void init() {
         //
         pc = 0;
-        cycle = 1;  // 周期从 1 开始计
+        cycle = 0;  // 周期从 1 开始计，每次先进行 ++cycle
         hasJump = false;
         ars.clear();
         mrs.clear();
@@ -154,6 +170,7 @@ class Tomasulo {
     vector<UnitState> unitMult;    // 乘除法器
     vector<UnitState> unitLoad;    // Load 部件   
     int jumpInt1, jumpInt2;        // 对应 jump 指令的两个整数
+    list<ReservationStation*> rsQue;  // 暂未就绪的 rs 链表
 };
 
 #endif // !TOMASULO_HPP
