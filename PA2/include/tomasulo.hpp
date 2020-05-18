@@ -36,7 +36,7 @@ class Tomasulo {
     // 保证为 FunctionalBuffer
     void printRSOne(FunctionalBuffer *fb) {
         printf("%s:: Busy: %s  Op: %s  Vj: %s  Vk: %s  Qj: %s  Qk: %s\n",
-                fb->name,
+                fb->name.c_str(),
                 (fb->isBusy ? "True" : "False"),
                 Instruction::typeToString(fb->op).c_str(),
                 ((fb->qj == NULL) ? to_string(fb->vj).c_str() : "None"),
@@ -142,6 +142,7 @@ class Tomasulo {
         if (rs == NULL) return false;
         // 有空余的保留站
         rs->isBusy = true;
+        rs->inQue = false;
         rs->instId = pc;
         int target = -1;  // 目标寄存器
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
@@ -169,8 +170,8 @@ class Tomasulo {
             // 修改目标寄存器的状态
             registerState[target].state = rs;
         }
-        ++pc;
         rsQue.push_back(rs);
+        ++pc;
         return true;
     }
 
@@ -229,7 +230,7 @@ class Tomasulo {
     void tryExecute() {
         list<ReservationStation*>::iterator it;
         for (it = rsQue.begin(); it != rsQue.end();) {
-            if (tryExecuteOne(*it)) {
+            if ((*it)->isReady() && tryExecuteOne(*it)) {
                 // 若加入执行成功
                 it = rsQue.erase(it);
             } else {
@@ -273,10 +274,12 @@ class Tomasulo {
             if (wb) {
                 // 判断有无需要该值的保留站
                 for (int i = 0; i < ars.size(); ++i) {
+                    if (!ars[i].isBusy) continue;
                     tryWriteVQ(unit->rs, res, ars[i].vj, ars[i].qj);
                     tryWriteVQ(unit->rs, res, ars[i].vk, ars[i].qk);
                 }
                 for (int i = 0; i < mrs.size(); ++i) {
+                    if (!mrs[i].isBusy) continue;
                     tryWriteVQ(unit->rs, res, mrs[i].vj, mrs[i].qj);
                     tryWriteVQ(unit->rs, res, mrs[i].vk, mrs[i].qk);
                 }
