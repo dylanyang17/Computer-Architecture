@@ -12,6 +12,7 @@
 using std::list;
 using std::vector;
 using std::string;
+using std::to_string;
 
 class Tomasulo {
   public:
@@ -24,6 +25,54 @@ class Tomasulo {
     }
 
   private:
+    void printLoadBuffer() {
+        printf("Load Buffer:\n");
+        for (int i = 0; i < lb.size(); ++i) {
+            printf("%d:: Busy: %s  Address: %d\n", i, (lb[i].isBusy ? "True" : "False"),
+                lb[i].addr);
+        }
+    }
+
+    // 保证为 FunctionalBuffer
+    void printRSOne(FunctionalBuffer *fb) {
+        printf("%s:: Busy: %s  Op: %s  Vj: %s  Vk: %s  Qj: %s  Qk: %s\n",
+                fb->name,
+                (fb->isBusy ? "True" : "False"),
+                Instruction::typeToString(fb->op).c_str(),
+                ((fb->qj == NULL) ? to_string(fb->vj).c_str() : "None"),
+                ((fb->qk == NULL && fb->op!=Instruction::Type::JUMP) ? to_string(fb->vk).c_str() : "None"),
+                ((fb->qj == NULL) ? "None" : fb->qj->name.c_str()),
+                ((fb->qk == NULL) ? "None" : fb->qk->name.c_str()));
+    }
+
+    void printRS() {
+        printf("Reservation Station:\n");
+        for (int i = 0; i < ars.size(); ++i) {
+            printRSOne(&ars[i]);
+        }
+        for (int i = 0; i < mrs.size(); ++i) {
+            printRSOne(&mrs[i]);
+        }
+    }
+
+    void printRegister() {
+        printf("Register:\n");
+        for (int i = 0; i < 32; ++i) {
+            RegisterState *reg = &registerState[i];
+            printf("%d:: value: %s\n", i, 
+                ((reg->state == NULL) ? to_string(reg->value).c_str() : reg->state->name.c_str()));
+        }
+    }
+
+    // 打印瞬时状态
+    void printNowState() {
+        printf("打印 cycle %d 的瞬时状态...\n", cycle);
+        printLoadBuffer();
+        printRS();
+        printRegister();
+        printf("\n");
+    }
+
     // 判断是否保留站全空
     bool isAllEmpty() {
         for (int i = 0; i < ars.size(); ++i) {
@@ -121,6 +170,7 @@ class Tomasulo {
             registerState[target].state = rs;
         }
         ++pc;
+        rsQue.push_back(rs);
         return true;
     }
 
@@ -197,27 +247,45 @@ class Tomasulo {
         } else {
             // 可进行写回操作
             int res;
+            bool wb = true;
             if (unit->rs->type == ReservationStation::Type::FUNCTIONAL) {
                 FunctionalBuffer* fb = (FunctionalBuffer*) unit->rs;
+                if (fb->op == Instruction::Type::ADD) {
+                    res = fb->vj + fb->vk;
+                } else if (fb->op == Instruction::Type::SUB) {
+                    res = fb->vj - fb->vk;
+                } else if (fb->op == Instruction::Type::MUL) {
+                    res = fb->vj * fb->vk;
+                } else if (fb->op == Instruction::Type::DIV) {
+                    res = fb->vj / fb->vk;
+                } else if (fb->op == Instruction::Type::JUMP) {
+                    if (fb->vj == jumpInt1) {
+                        pc += jumpInt2;
+                    }
+                    hasJump = false;
+                    wb = false;
+                }
             } else {
                 LoadBuffer* b = (LoadBuffer*) unit->rs;
                 res = b->addr;
             }
 
-            // 判断有无需要该值的保留站
-            for (int i = 0; i < ars.size(); ++i) {
-                tryWriteVQ(unit->rs, res, ars[i].vj, ars[i].qj);
-                tryWriteVQ(unit->rs, res, ars[i].vk, ars[i].qk);
-            }
-            for (int i = 0; i < mrs.size(); ++i) {
-                tryWriteVQ(unit->rs, res, mrs[i].vj, mrs[i].qj);
-                tryWriteVQ(unit->rs, res, mrs[i].vk, mrs[i].qk);
-            }
+            if (wb) {
+                // 判断有无需要该值的保留站
+                for (int i = 0; i < ars.size(); ++i) {
+                    tryWriteVQ(unit->rs, res, ars[i].vj, ars[i].qj);
+                    tryWriteVQ(unit->rs, res, ars[i].vk, ars[i].qk);
+                }
+                for (int i = 0; i < mrs.size(); ++i) {
+                    tryWriteVQ(unit->rs, res, mrs[i].vj, mrs[i].qj);
+                    tryWriteVQ(unit->rs, res, mrs[i].vk, mrs[i].qk);
+                }
 
-            // 判断是否写入寄存器栈
-            for (int i = 0; i < 32; ++i) {
-                if (registerState[i].state == unit->rs) {
-                    registerState[i].value = res;
+                // 判断是否写入寄存器栈
+                for (int i = 0; i < 32; ++i) {
+                    if (registerState[i].state == unit->rs) {
+                        registerState[i].value = res;
+                    }
                 }
             }
 
@@ -262,11 +330,11 @@ class Tomasulo {
         unitMult.clear();
         unitLoad.clear();
         // 6 个加减法保留站
-        for (int i = 0; i < 6; ++i) ars.push_back(FunctionalBuffer());
+        for (int i = 0; i < 6; ++i) ars.push_back(FunctionalBuffer(string("Ars") + to_string(i)));
         // 3 个乘除法保留站
-        for (int i = 0; i < 3; ++i) mrs.push_back(FunctionalBuffer());
+        for (int i = 0; i < 3; ++i) mrs.push_back(FunctionalBuffer(string("Mrs") + to_string(i)));
         // 3 个 LoadBuffer
-        for (int i = 0; i < 3; ++i) lb.push_back(LoadBuffer());
+        for (int i = 0; i < 3; ++i) lb.push_back(LoadBuffer(string("LB") + to_string(i)));
         // 3 个加减法器
         for (int i = 0; i < 3; ++i) unitAdd.push_back(UnitState());
         // 2 个乘除法器

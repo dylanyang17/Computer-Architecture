@@ -102,6 +102,24 @@ struct Instruction {
         }
     }
 
+    static string typeToString(Type type) {
+        if (type == Type::ADD) {
+            return string("ADD");
+        } else if (type == Type::SUB) {
+            return string("SUB");
+        } else if (type == Type::MUL) {
+            return string("MUL");
+        } else if (type == Type::DIV) {
+            return string("DIV");
+        } else if (type == Type::LOAD) {
+            return string("LD");
+        } else if (type == Type::JUMP) {
+            return string("JUMP");
+        } else {
+            assert(0);
+        }
+    }
+
     // 获得指令需要执行的周期数
     static int getCycleNeeded(Type type) {
         if (type == Type::ADD) {
