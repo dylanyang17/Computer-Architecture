@@ -33,7 +33,7 @@ class FunctionalBuffer : public ReservationStation {
     
     Instruction::Type op;        // 操作类型
     int vj, vk;                  // 源操作数的值
-    ReservationStation* qj, qk;  // 源操作数的来源保留站
+    ReservationStation *qj, *qk;  // 源操作数的来源保留站
 };
 
 class LoadBuffer : public ReservationStation {

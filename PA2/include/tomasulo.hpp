@@ -77,13 +77,13 @@ class Tomasulo {
     }
 
     // 尝试进行发射 instruction
-    bool tryIssue(Instruction instruction) {
+    bool tryIssue() {
+        Instruction instruction = instructions[pc];
         if (hasJump || pc >= instructions.size()) return false;
         ReservationStation* rs = findEmptyRs(instruction);
         if (rs == NULL) return false;
         // 有空余的保留站
         rs->isBusy = true;
-        rs->type = instruction.type;
         rs->instId = pc;
         int target = -1;  // 目标寄存器
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
@@ -137,7 +137,7 @@ class Tomasulo {
                 unit = &unitAdd[pos];
                 unit->rs = rs;
                 unit->instId = rs->instId;
-                unit->countdown = Instruction::getCycleNeeded(fb->type);
+                unit->countdown = Instruction::getCycleNeeded(fb->op);
             } else if (Instruction::isMultGroup(fb->op)) {
                 // 使用乘除法器
                 int pos = findEmptyUnit(unitMult);
@@ -145,8 +145,8 @@ class Tomasulo {
                 unit = &unitMult[pos];
                 unit->rs = rs;
                 unit->instId = rs->instId;
-                unit->countdown = Instruction::getCycleNeeded(fb->type);
-                if (fb->type == Instruction::Type::DIV && fb->vk == 0) {
+                unit->countdown = Instruction::getCycleNeeded(fb->op);
+                if (fb->op == Instruction::Type::DIV && fb->vk == 0) {
                     // 特殊处理除零的情况
                     fb->vk = 1;
                     unit->countdown = 1;
@@ -178,11 +178,16 @@ class Tomasulo {
         }
     }
 
+    // 尝试进行写回
+    void tryWriteBack() {
+        
+    }
+
     // 进入下一个 cycle
     void nextCycle() {
         ++cycle;
-        Instruction instruction = instructions[pc];
-        tryIssue(instruction);
+        tryWriteBack();
+        tryIssue();
         tryExecute();
     }
 

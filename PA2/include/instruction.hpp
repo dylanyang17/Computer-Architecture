@@ -35,7 +35,7 @@ struct Instruction {
         last = pos;
         pos = s.find(',', last+1);
         string opStr1 = s.substr(last+1, pos-last-1);
-        this->op1 = stringToOp(opStr1, isFunctional(type) || type == Type::LOAD);
+        this->op1 = stringToOp(opStr1, isOPR(type) || type == Type::LOAD);
         if (type == Type::LOAD) {
             string opStr2 = s.substr(pos+1);
             this->op2 = stringToOp(opStr2, false);
@@ -45,7 +45,7 @@ struct Instruction {
             string opStr2 = s.substr(last+1, pos-last-1);
             this->op2 = stringToOp(opStr2, true);
             string opStr3 = s.substr(pos+1);
-            this->op3 = stringToOp(opStr3, isFunctional(type));
+            this->op3 = stringToOp(opStr3, isOPR(type));
         }
     }
 
@@ -121,8 +121,8 @@ struct Instruction {
         }
     }
 
-    // 判断某个类型是否为功能类型
-    static bool isFunctional(Type type) {
+    // 判断某个类型是否为 OPR 类型
+    static bool isOPR(Type type) {
         return type == Type::ADD || type == Type::SUB
             || type == Type::MUL || type == Type::DIV;
     }
