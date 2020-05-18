@@ -47,3 +47,7 @@
 * ReservationStation\* 类型变量 rs 表示对应的保留站。
 
 不同类型的运算部件使用不同的数组来区分即可，例如 unitStateAdd[3], unitStateMult[2], unitStateLoad[2]。
+
+## 控制逻辑
+
+用 Tomasulo 类来控制整个模拟过程。
