@@ -24,7 +24,6 @@ class ReservationStation {
 
     Type type;      // 类型，用于确定是 Functional 还是 Load
     bool isBusy;    // 是否包含指令
-    bool inQue;     // isBusy 成立时才有效，表示是否已经被放入队列
     int instId;     // 对应指令的索引
     string name;    // 用于方便打印
 };
@@ -32,7 +31,7 @@ class ReservationStation {
 class FunctionalBuffer : public ReservationStation {
   public:
     FunctionalBuffer(string _name) : ReservationStation(Type::FUNCTIONAL, _name) {
-        // 注意 isBusy 将会被赋值为 false，所以其余初值无关紧要
+        qj = qk = NULL;
     }
 
     bool isReady() {

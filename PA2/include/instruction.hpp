@@ -116,7 +116,7 @@ struct Instruction {
         } else if (type == Type::JUMP) {
             return string("JUMP");
         } else {
-            assert(0);
+            return string("None");
         }
     }
 

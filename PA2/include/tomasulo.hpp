@@ -21,6 +21,7 @@ class Tomasulo {
         instructions = Instruction::readFile(path);
         while (pc < instructions.size() || !isAllEmpty()) {
             nextCycle();
+            printNowState();
         }
     }
 
@@ -142,7 +143,6 @@ class Tomasulo {
         if (rs == NULL) return false;
         // 有空余的保留站
         rs->isBusy = true;
-        rs->inQue = false;
         rs->instId = pc;
         int target = -1;  // 目标寄存器
         if (rs->type == ReservationStation::Type::FUNCTIONAL) {
@@ -292,6 +292,11 @@ class Tomasulo {
                 }
             }
 
+            if (unit->rs->type == ReservationStation::Type::FUNCTIONAL) {
+                FunctionalBuffer* fb = (FunctionalBuffer*) unit->rs;
+                fb->qj = NULL;
+                fb->qk = NULL;
+            }
             unit->rs->isBusy = false;
             unit->rs = NULL;
             return true;
