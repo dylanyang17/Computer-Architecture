@@ -76,6 +76,15 @@ class Tomasulo {
         }
     }
 
+    // 尝试对 VQ 进行写回
+    bool tryWriteVQ(ReservationStation *from, int value, int &v, ReservationStation* &q) {
+        if (q == from) {
+            q = NULL;
+            v = value;
+            return true;
+        } else return false;
+    }
+
     // 尝试进行发射 instruction
     bool tryIssue() {
         Instruction instruction = instructions[pc];
@@ -94,6 +103,7 @@ class Tomasulo {
                 jumpInt2 = instruction.op3;
                 hasJump = true;
                 setVQ(instruction.op2, fb->vj, fb->qj);
+                fb->qk = NULL;
             } else {
                 // 功能类指令
                 setVQ(instruction.op2, fb->vj, fb->qj);
@@ -178,14 +188,62 @@ class Tomasulo {
         }
     }
 
+    // 尝试对 unit 进行写回，若 countdown 非零则仅减 1
+    bool tryWriteBackOne(UnitState *unit) {
+        if (unit->rs == NULL) return false;
+        if (unit->countdown > 0) {
+            unit->countdown--;
+            return false;
+        } else {
+            // 可进行写回操作
+            int res;
+            if (unit->rs->type == ReservationStation::Type::FUNCTIONAL) {
+                FunctionalBuffer* fb = (FunctionalBuffer*) unit->rs;
+            } else {
+                LoadBuffer* b = (LoadBuffer*) unit->rs;
+                res = b->addr;
+            }
+
+            // 判断有无需要该值的保留站
+            for (int i = 0; i < ars.size(); ++i) {
+                tryWriteVQ(unit->rs, res, ars[i].vj, ars[i].qj);
+                tryWriteVQ(unit->rs, res, ars[i].vk, ars[i].qk);
+            }
+            for (int i = 0; i < mrs.size(); ++i) {
+                tryWriteVQ(unit->rs, res, mrs[i].vj, mrs[i].qj);
+                tryWriteVQ(unit->rs, res, mrs[i].vk, mrs[i].qk);
+            }
+
+            // 判断是否写入寄存器栈
+            for (int i = 0; i < 32; ++i) {
+                if (registerState[i].state == unit->rs) {
+                    registerState[i].value = res;
+                }
+            }
+
+            unit->rs->isBusy = false;
+            unit->rs = NULL;
+            return true;
+        }
+    }
+
     // 尝试进行写回
     void tryWriteBack() {
-        
+        for (int i = 0; i < unitAdd.size(); ++i) {
+            tryWriteBackOne(&unitAdd[i]);
+        }
+        for (int i = 0; i < unitMult.size(); ++i) {
+            tryWriteBackOne(&unitMult[i]); 
+        }
+        for (int i = 0; i < unitLoad.size(); ++i) {
+            tryWriteBackOne(&unitLoad[i]);
+        }
     }
 
     // 进入下一个 cycle
     void nextCycle() {
         ++cycle;
+        printf("正在执行 pc %d, cycle %d...\n", pc, cycle);
         tryWriteBack();
         tryIssue();
         tryExecute();
