@@ -2,6 +2,7 @@
 #include <cstring>
 #include <vector>
 #include "instruction.hpp"
+#include "reservation_station.hpp"
 using std::vector;
 using std::string;
 
