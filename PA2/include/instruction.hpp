@@ -107,6 +107,21 @@ struct Instruction {
         return type == Type::ADD || type == Type::SUB
             || type == Type::MUL || type == Type::DIV;
     }
+
+    // 判断某个类型是否使用加减法器
+    static bool isAddGroup(Type type) {
+        return type == Type::ADD || type == Type::SUB || type == Type::JUMP;
+    }
+
+    // 判断某个类型是否使用乘除法器
+    static bool isMultGroup(Type type) {
+        return type == Type::MUL || type == Type::DIV;
+    }
+
+    // 判断某个类型是否使用 Load 部件
+    static bool isLoadGroup(Type type) {
+        return type == Type::LOAD;
+    }
 };
 
 #endif // !INSTRUCTION_HPP

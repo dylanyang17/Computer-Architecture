@@ -16,16 +16,97 @@ class Tomasulo {
     void run(string path) {
         init();
         instructions = Instruction::readFile(path);
-        while (pc < instructions.size()) {
-          nextCycle();
+        while (pc < instructions.size() || !isAllEmpty()) {
+            nextCycle();
         }
     }
 
   private:
+    // 判断是否保留站全空
+    bool isAllEmpty() {
+        for (int i = 0; i < ars.size(); ++i) {
+            if (ars[i].isBusy) return false;
+        }
+        for (int i = 0; i < mrs.size(); ++i) {
+            if (mrs[i].isBusy) return false;
+        }
+        for (int i = 0; i < lb.size(); ++i) {
+            if (lb[i].isBusy) return false;
+        }
+        return true;
+    }
+
+    // 寻找空闲的保留站
+    ReservationStation* getRs(Instruction instruction) {
+        Instruction::Type type = instruction.type;
+        if (Instruction::isAddGroup(type)) {
+            // 使用加减法器
+            for (int i = 0; i < ars.size(); ++i) {
+                if (!ars[i].isBusy) {
+                    return &ars[i];
+                }
+            }
+        } else if (Instruction::isMultGroup(type)) {
+            // 使用乘除法器
+            for (int i = 0; i < mrs.size(); ++i) {
+                if (!mrs[i].isBusy) {
+                    return &mrs[i];
+                }
+            }
+        } else {
+            // 使用 Load 部件
+            for (int i = 0; i < lb.size(); ++i) {
+                if (!lb[i].isBusy) {
+                    return &lb[i];
+                }
+            }
+        }
+        return NULL;
+    }
+
+    // 对于索引为 r 的寄存器，设置保留站的 v 和 q
+    void setVQ(int r, int &v, ReservationStation* &q) {
+        if (registerState[r].state == NULL) {
+            q = NULL;
+            v = registerState[r].value;
+        } else {
+            q = registerState[r].state;
+        }
+    }
+
     // 尝试进行发射 instruction
     void tryIssue(Instruction instruction) {
-        if (hasJump) return;
-        
+        if (hasJump || pc >= instructions.size()) return;
+        ReservationStation* rs = getRs(instruction);
+        if (rs == NULL) return;
+        // 有空余的保留站
+        rs->isBusy = true;
+        rs->type = instruction.type;
+        int target = -1;  // 目标寄存器
+        if (rs->type == ReservationStation::Type::FUNCTIONAL) {
+            FunctionalBuffer* fb = (FunctionalBuffer*) rs;
+            if (instruction.type == Instruction::Type::JUMP) {
+                // JUMP 指令
+                jumpInt1 = instruction.op1;
+                jumpInt2 = instruction.op3;
+                hasJump = true;
+                setVQ(instruction.op2, fb->vj, fb->qj);
+            } else {
+                // 功能类指令
+                setVQ(instruction.op2, fb->vj, fb->qj);
+                setVQ(instruction.op3, fb->vk, fb->qk);
+                target = instruction.op1;
+            }
+        } else {
+            // Load 指令
+            LoadBuffer* b = (LoadBuffer*) rs;
+            b->addr = instruction.op2;
+            target = instruction.op1;
+        }
+        if (target != -1) {
+            // 修改目标寄存器的状态
+            registerState[target].state = rs;
+        }
     }
 
     // 执行当前 cycle 并时间推移到下一个 cycle
@@ -72,6 +153,7 @@ class Tomasulo {
     vector<UnitState> unitAdd;     // 加减法器
     vector<UnitState> unitMult;    // 乘除法器
     vector<UnitState> unitLoad;    // Load 部件   
+    int jumpInt1, jumpInt2;        // 对应 jump 指令的两个整数
 };
 
 #endif // !TOMASULO_HPP
