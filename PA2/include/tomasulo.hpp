@@ -16,13 +16,29 @@ using std::to_string;
 
 class Tomasulo {
   public:
-    void run(string path) {
+    void run(string path, bool displayOn) {
         init();
         instructions = Instruction::readFile(path);
+        int size = instructions.size();
+        issueCycle.reserve(size);
+        doneCycle.reserve(size);
+        wbCycle.reserve(size);
+        for (int i = 0; i < size; ++i) {
+            issueCycle.push_back(-1);
+            doneCycle.push_back(-1);
+            wbCycle.push_back(-1);
+        }
         while (pc < instructions.size() || !isAllEmpty()) {
             nextCycle();
-            printNowState();
+            if (displayOn) printNowState();
         }
+        int lpos = path.find_last_of("/")+1, rpos = path.find_last_of(".")-1;
+        string filename = path.substr(lpos, rpos-lpos+1);
+        FILE *file = fopen((string("logs/2017011071_") + filename + string(".log")).c_str(), "w");
+        for (int i = 0; i < instructions.size(); ++i) {
+            fprintf(file, "%d %d %d\n", issueCycle[i], doneCycle[i], wbCycle[i]);
+        }
+        fclose(file);
     }
 
   private:
@@ -196,6 +212,7 @@ class Tomasulo {
             registerState[target].state = rs;
         }
         rsQue.push_back(rs);
+        if (issueCycle[pc] == -1) issueCycle[pc] = cycle;
         ++pc;
         return true;
     }
@@ -323,6 +340,10 @@ class Tomasulo {
                 fb->qj = NULL;
                 fb->qk = NULL;
             }
+            if (doneCycle[unit->rs->instId] == -1) {
+                doneCycle[unit->rs->instId] = cycle-1;
+                wbCycle[unit->rs->instId] = cycle;
+            }
             unit->rs->isBusy = false;
             unit->rs = NULL;
             return true;
@@ -375,7 +396,6 @@ class Tomasulo {
         for (int i = 0; i < 2; ++i) unitMult.push_back(UnitState());
         // 2 个 Load 部件
         for (int i = 0; i < 2; ++i) unitLoad.push_back(UnitState());
-        
     }
 
     vector<Instruction> instructions;
@@ -391,6 +411,8 @@ class Tomasulo {
     vector<UnitState> unitLoad;    // Load 部件   
     int jumpInt1, jumpInt2;        // 对应 jump 指令的两个整数
     list<ReservationStation*> rsQue;  // 暂未就绪的 rs 链表
+
+    vector<int> issueCycle, doneCycle, wbCycle;
 };
 
 #endif // !TOMASULO_HPP
